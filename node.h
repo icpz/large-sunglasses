@@ -32,8 +32,9 @@ private:
 
 signals:
     void sig_registered(bool);
-    void sig_friends();
-    void sig_user_found(bool);
+    void sig_friends(bool);
+    void sig_user_found(bool, std::string);
+    void sig_addFriend(bool);
 
 private slots:
     void get_friends(bool);

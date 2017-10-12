@@ -114,17 +114,17 @@ void Node::get_friends(bool b)
                           int i;
                           for (i = 0; i < 40 && value->data[i] == this->id[i]; i++);
                           if (i == 40) {
-                              this->friends.insert(friends.end(), std::string(value->data.begin() + 40, value->data.end()));
+                              this->friends.insert(this->friends.end(), std::string(value->data.begin() + 40, value->data.end()));
                           }
                           for (i = 40; i < 80 && value->data[i] == this->id[i - 40]; i++);
                           if (i == 80) {
-                              this->friends.insert(friends.end(), std::string(value->data.begin(), value->data.begin() + 40));
+                              this->friends.insert(this->friends.end(), std::string(value->data.begin(), value->data.begin() + 40));
                           }
                       }
                       return true;
                   },
-            [this](bool) {
-                emit sig_friends();
+            [this](bool ok) {
+                emit sig_friends(ok);
             }
         );
     }
@@ -133,7 +133,7 @@ void Node::get_friends(bool b)
 void Node::search_user(QString uid)
 {
     node->get("key_users",
-              [&uid, this](const std::vector<std::shared_ptr<dht::Value>>& values) {
+              [uid, this](const std::vector<std::shared_ptr<dht::Value>>& values) {
                   int found = 0;
                   for (const auto &value : values) {
                       if (value->data.size() != uid.toStdString().size()) {
@@ -153,17 +153,31 @@ void Node::search_user(QString uid)
 
                   return true;
               },
-              [this](bool) {
+              [this, &uid](bool) {
                   if (this->user_found) {
                       this->user_found = false;
-                      emit this->sig_user_found(true);
+                      emit this->sig_user_found(true, uid.toStdString());
                   } else {
-                      emit this->sig_user_found(false);
+                      emit this->sig_user_found(false, uid.toStdString());
                   }
     });
 }
 
 void Node::add_friend(QString uid)
 {
-    //node->put();
+    std::string s = uid.toStdString() + this->id;
+    node->put("key_friends",
+              dht::Value(4, reinterpret_cast<const uint8_t*>(s.c_str()), s.size()),
+              [this, &uid](bool ok) {
+                  if (ok) {
+                      this->friends.insert(this->friends.end(), uid.toStdString());
+                  }
+                  emit this->sig_addFriend(ok);
+              },
+              {},
+              true
+    );
+}
+
+    }
 }
