@@ -3,11 +3,18 @@
 Node::Node() : registered(false), user_found(false)
 {
     connect(this, &Node::sig_registered, this, &Node::get_friends, Qt::DirectConnection);
+    connect(this, &Node::sig_send_message, this, &Node::slot1, Qt::DirectConnection);
+    connect(this, &Node::sig_recv_msg, this, &Node::slot2, Qt::DirectConnection);
 }
 
 Node::~Node()
 {
     delete node;
+}
+
+std::string Node::getId()
+{
+    return this->id;
 }
 
 int Node::signup(QString pw)
@@ -179,5 +186,34 @@ void Node::add_friend(QString uid)
     );
 }
 
-    }
+void Node::sendMessage(std::string uid, QString m)
+{
+    node->putEncrypted(dht::InfoHash::get(uid), dht::InfoHash(uid), dht::ImMessage(rand(), m.toStdString()), [this](bool ok) {
+        if (not ok) {
+            emit this->sig_send_message(false);
+        } else {
+            emit this->sig_send_message(true);
+        }
+    });
+}
+
+void Node::listenMessage()
+{
+    node->listen<dht::ImMessage>(dht::InfoHash::get(this->id), [this](dht::ImMessage&& msg) {
+        emit this->sig_recv_msg(std::pair<dht::InfoHash, std::string>(msg.from, msg.msg));
+        return true;
+    });
+}
+
+void Node::slot1(bool b)
+{
+    if (b)
+        qDebug("Send correctly!");
+    else
+        qDebug("Error: send msg!");
+}
+
+void Node::slot2(std::pair<dht::InfoHash, std::string> m)
+{
+    qDebug("send from %s,\n content: %s", m.first.to_c_str(), m.second.c_str());
 }
