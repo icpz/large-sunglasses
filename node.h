@@ -5,6 +5,7 @@
 #include <QString>
 #include <QFile>
 #include <QObject>
+#include <cstdlib>
 
 #define BOOTSTRAP "192.168.98.194"
 
@@ -15,11 +16,14 @@ class Node: public QObject
 public:
     Node();
     ~Node();
+    std::string getId();
     static int signup(QString);
     int checkid(QString);
     void conn();
     void search_user(QString);
     void add_friend(QString);
+    void sendMessage(std::string, QString);
+    void listenMessage();
 
 private:
     dht::DhtRunner *node;
@@ -35,6 +39,8 @@ signals:
     void sig_friends(bool);
     void sig_user_found(bool, std::string);
     void sig_addFriend(bool);
+    void sig_send_message(bool);
+    void sig_recv_msg(std::pair<dht::InfoHash, std::string>);
 
 private slots:
     void get_friends(bool);

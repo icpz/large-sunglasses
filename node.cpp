@@ -10,9 +10,14 @@ Node::~Node()
     delete node;
 }
 
+std::string Node::getId()
+{
+    return this->id;
+}
+
 int Node::signup(QString pw)
 {
-    auto key = dht::crypto::PrivateKey::generateEC();
+    auto key = dht::crypto::PrivateKey::generate();
     std::vector<uint8_t> pk_s = key.serialize(pw.toStdString());
 
     auto cert = dht::crypto::Certificate::generate(key);
@@ -67,7 +72,7 @@ void Node::conn()
 {
     node = new dht::DhtRunner();
 
-    node->run(4222, dht::crypto::Identity(this->pk, this->cert), true);
+    node->run(4222, /*dht::crypto::Identity(this->pk, this->cert)*/dht::crypto::generateIdentity(), true);
     node->bootstrap(BOOTSTRAP, "4222");
     id = node->getId().toString();
     qDebug("%s", id.data());
@@ -179,5 +184,21 @@ void Node::add_friend(QString uid)
     );
 }
 
-    }
+void Node::sendMessage(std::string uid, QString m)
+{
+    node->putEncrypted(dht::InfoHash::get(uid), dht::InfoHash(uid), dht::ImMessage(rand(), m.toStdString()), [this](bool ok) {
+        if (not ok) {
+            emit this->sig_send_message(false);
+        } else {
+            emit this->sig_send_message(true);
+        }
+    });
+}
+
+void Node::listenMessage()
+{
+    node->listen<dht::ImMessage>(dht::InfoHash::get(this->id), [this](dht::ImMessage&& msg) {
+        emit this->sig_recv_msg(std::pair<dht::InfoHash, std::string>(msg.from, msg.msg));
+        return true;
+    });
 }
