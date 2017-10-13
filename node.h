@@ -44,8 +44,6 @@ signals:
 
 private slots:
     void get_friends(bool);
-    void slot1(bool);
-    void slot2(std::pair<dht::InfoHash, std::string>);
 };
 
 #endif // NODE_H
