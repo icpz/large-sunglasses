@@ -25,11 +25,20 @@ DEFINES += QT_DEPRECATED_WARNINGS
 
 SOURCES += \
         main.cpp \
-    node.cpp
+    node.cpp \
+    mainwindow.cpp \
+    signindialog.cpp \
+    signupdialog.cpp
 
 HEADERS += \
-    node.h
+    node.h \
+    mainwindow.h \
+    signindialog.h \
+    signupdialog.h
 
-FORMS +=
+FORMS += \
+    mainwindow.ui \
+    signindialog.ui \
+    signupdialog.ui
 
 LIBS += -lopendht

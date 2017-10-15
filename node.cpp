@@ -1,6 +1,6 @@
 ﻿#include "node.h"
 
-Node::Node() : registered(false), user_found(false)
+Node::Node() : registered(false), user_found(false), node(nullptr)
 {
     connect(this, &Node::sig_registered, this, &Node::get_friends, Qt::DirectConnection);
 }
