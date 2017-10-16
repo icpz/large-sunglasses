@@ -28,17 +28,23 @@ SOURCES += \
     node.cpp \
     mainwindow.cpp \
     signindialog.cpp \
-    signupdialog.cpp
+    signupdialog.cpp \
+    addfrienddialog.cpp
 
 HEADERS += \
     node.h \
     mainwindow.h \
     signindialog.h \
-    signupdialog.h
+    signupdialog.h \
+    addfrienddialog.h
 
 FORMS += \
     mainwindow.ui \
     signindialog.ui \
-    signupdialog.ui
+    signupdialog.ui \
+    addfrienddialog.ui
 
 LIBS += -lopendht
+
+RESOURCES += \
+    resource/rsc.qrc

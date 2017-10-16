@@ -15,6 +15,11 @@ std::string Node::getId()
     return this->id;
 }
 
+std::vector<std::string> Node::g_friends()
+{
+    return this->friends;
+}
+
 int Node::signup(QString pw)
 {
     auto key = dht::crypto::PrivateKey::generate();
@@ -72,7 +77,7 @@ void Node::conn()
 {
     node = new dht::DhtRunner();
 
-    node->run(4222, /*dht::crypto::Identity(this->pk, this->cert)*/dht::crypto::generateIdentity(), true);
+    node->run(4222, dht::crypto::Identity(this->pk, this->cert), true);
     node->bootstrap(BOOTSTRAP, "4222");
     id = node->getId().toString();
     qDebug("%s", id.data());
@@ -158,12 +163,12 @@ void Node::search_user(QString uid)
 
                   return true;
               },
-              [this, &uid](bool) {
+              [this, uid](bool) {
                   if (this->user_found) {
                       this->user_found = false;
-                      emit this->sig_user_found(true, uid.toStdString());
+                      emit this->sig_user_found(true, uid);
                   } else {
-                      emit this->sig_user_found(false, uid.toStdString());
+                      emit this->sig_user_found(false, uid);
                   }
     });
 }
@@ -173,7 +178,7 @@ void Node::add_friend(QString uid)
     std::string s = uid.toStdString() + this->id;
     node->put("key_friends",
               dht::Value(4, reinterpret_cast<const uint8_t*>(s.c_str()), s.size()),
-              [this, &uid](bool ok) {
+              [this, uid](bool ok) {
                   if (ok) {
                       this->friends.insert(this->friends.end(), uid.toStdString());
                   }

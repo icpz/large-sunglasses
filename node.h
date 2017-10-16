@@ -24,6 +24,7 @@ public:
     void add_friend(QString);
     void sendMessage(std::string, QString);
     void listenMessage();
+    std::vector<std::string> g_friends();
 
 private:
     dht::DhtRunner *node;
@@ -37,7 +38,7 @@ private:
 signals:
     void sig_registered(bool);
     void sig_friends(bool);
-    void sig_user_found(bool, std::string);
+    void sig_user_found(bool, QString);
     void sig_addFriend(bool);
     void sig_send_message(bool);
     void sig_recv_msg(std::pair<dht::InfoHash, std::string>);
