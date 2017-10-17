@@ -22,8 +22,9 @@ public:
     void conn();
     void search_user(QString);
     void add_friend(QString);
-    void sendMessage(std::string, QString);
+    void sendMessage(std::string, QString, long);
     void listenMessage();
+    void listen_friend();
     std::vector<std::string> g_friends();
 
 private:
@@ -39,9 +40,9 @@ signals:
     void sig_registered(bool);
     void sig_friends(bool);
     void sig_user_found(bool, QString);
-    void sig_addFriend(bool);
+    void sig_addFriend(bool, QString);
     void sig_send_message(bool);
-    void sig_recv_msg(std::pair<dht::InfoHash, std::string>);
+    void sig_recv_msg(QString, QString, QString);
 
 private slots:
     void get_friends(bool);

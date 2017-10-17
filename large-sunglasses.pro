@@ -29,14 +29,16 @@ SOURCES += \
     mainwindow.cpp \
     signindialog.cpp \
     signupdialog.cpp \
-    addfrienddialog.cpp
+    addfrienddialog.cpp \
+    msglist.cpp
 
 HEADERS += \
     node.h \
     mainwindow.h \
     signindialog.h \
     signupdialog.h \
-    addfrienddialog.h
+    addfrienddialog.h \
+    msglist.h
 
 FORMS += \
     mainwindow.ui \

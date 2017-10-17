@@ -6,6 +6,8 @@
 #include "signindialog.h"
 #include "addfrienddialog.h"
 #include <QMessageBox>
+#include <QListWidgetItem>
+#include "msglist.h"
 
 namespace Ui {
 class MainWindow;
@@ -27,7 +29,11 @@ private slots:
     void on_addFriend();
     void on_recvId(QString);
     void on_userFound(bool, QString);
-    void on_friendAdded(bool);
+    void on_friendAdded(bool, QString);
+    void on_recvMsg(QString, QString, QString);
+    void on_btn_send_clicked();
+
+    void on_listWidget_itemClicked(QListWidgetItem *item);
 
 private:
     Ui::MainWindow *ui;
@@ -35,6 +41,7 @@ private:
     Node node;
     QAction *add_friend;
     AddFriendDialog *dlg_af;
+    std::vector<MsgList> msgList;
 };
 
 #endif // MAINWINDOW_H

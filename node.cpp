@@ -1,4 +1,5 @@
 ﻿#include "node.h"
+#include <qdebug.h>
 
 Node::Node() : registered(false), user_found(false), node(nullptr)
 {
@@ -121,13 +122,15 @@ void Node::get_friends(bool b)
         node->get("key_friends",
                   [this](const std::vector<std::shared_ptr<dht::Value>>& values) {
                       for (const auto &value : values) {
+                          int self = 0;
                           int i;
                           for (i = 0; i < 40 && value->data[i] == this->id[i]; i++);
                           if (i == 40) {
                               this->friends.insert(this->friends.end(), std::string(value->data.begin() + 40, value->data.end()));
+                              self = 1;
                           }
                           for (i = 40; i < 80 && value->data[i] == this->id[i - 40]; i++);
-                          if (i == 80) {
+                          if (i == 80 && !self) {
                               this->friends.insert(this->friends.end(), std::string(value->data.begin(), value->data.begin() + 40));
                           }
                       }
@@ -178,20 +181,20 @@ void Node::add_friend(QString uid)
     std::string s = uid.toStdString() + this->id;
     node->put("key_friends",
               dht::Value(4, reinterpret_cast<const uint8_t*>(s.c_str()), s.size()),
-              [this, uid](bool ok) {
+              /*[this, uid](bool ok) {
                   if (ok) {
                       this->friends.insert(this->friends.end(), uid.toStdString());
                   }
-                  emit this->sig_addFriend(ok);
-              },
+                  emit this->sig_addFriend(ok, uid);
+              }*/{},
               {},
               true
     );
 }
 
-void Node::sendMessage(std::string uid, QString m)
+void Node::sendMessage(std::string uid, QString m, long t)
 {
-    node->putEncrypted(dht::InfoHash::get(uid), dht::InfoHash(uid), dht::ImMessage(rand(), m.toStdString()), [this](bool ok) {
+    node->putEncrypted(dht::InfoHash::get(uid), dht::InfoHash(uid), dht::ImMessage(rand(), m.toStdString(), t), [this](bool ok) {
         if (not ok) {
             emit this->sig_send_message(false);
         } else {
@@ -203,7 +206,51 @@ void Node::sendMessage(std::string uid, QString m)
 void Node::listenMessage()
 {
     node->listen<dht::ImMessage>(dht::InfoHash::get(this->id), [this](dht::ImMessage&& msg) {
-        emit this->sig_recv_msg(std::pair<dht::InfoHash, std::string>(msg.from, msg.msg));
+        QString from = QString::fromStdString(msg.from.toString());
+        QString content = QString::fromStdString(msg.msg);
+        std::stringstream ss;
+        ss << std::put_time(std::localtime(&msg.date), "%Y-%m-%d %X");
+        QString date = QString::fromStdString(ss.str());
+        emit this->sig_recv_msg(from, content, date);
         return true;
     });
+}
+
+void Node::listen_friend()
+{
+    node->listen("key_friends", [this](const std::vector<std::shared_ptr<dht::Value>>& values) {
+        QString u;
+        for (const auto& value :values) {
+            int i;
+            for (i = 0; i < 40 && value->data[i] == this->id[i]; i++);
+            if (i == 40) {
+                std::string uid = std::string(value->data.begin() + 40, value->data.end());
+                std::vector<std::string>::iterator it;
+                it = std::find(this->friends.begin(), this->friends.end(), uid);
+                if (it == this->friends.end()) {
+                    this->friends.insert(this->friends.end(), uid);
+                    u = QString::fromStdString(uid);
+                    emit sig_addFriend(true, u);
+                    qDebug() << "j";
+                }
+                continue;
+            }
+            for (i = 40; i < 80 && value->data[i] == this->id[i - 40]; i++);
+            qDebug() << i;
+            if (i == 80) {
+                std::string uid = std::string(value->data.begin(), value->data.begin() + 40);
+                std::vector<std::string>::iterator it;
+                it = std::find(this->friends.begin(), this->friends.end(), uid);
+                if (it == this->friends.end()) {
+                    this->friends.insert(this->friends.end(), uid);
+                    u = QString::fromStdString(uid);
+                    emit sig_addFriend(true, u);
+                    qDebug() << "k";
+                }
+            }
+        }
+        return true;
+
+    }
+    );
 }
